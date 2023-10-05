@@ -34,7 +34,7 @@ const MyChats = ({ fetchAgain }) => {
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "bottom-left",
+        position: "top",
       });
     }
   };

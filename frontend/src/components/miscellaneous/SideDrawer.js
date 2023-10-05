@@ -88,7 +88,7 @@ function SideDrawer() {
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "bottom-left",
+        position: "top-left",
       });
     }
   };
@@ -117,7 +117,7 @@ function SideDrawer() {
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "bottom-left",
+        position: "top-left",
       });
     }
   };
@@ -142,7 +142,7 @@ function SideDrawer() {
           </Button>
         </Tooltip>
         <Text fontSize="2xl" fontFamily="Work sans">
-          Talk-A-Tive
+          Chat-Box
         </Text>
         <div>
           <Menu>

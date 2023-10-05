@@ -69,7 +69,7 @@ const GroupChatModal = ({ children }) => {
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "bottom-left",
+        position: "top-left",
       });
     }
   };
@@ -111,7 +111,7 @@ const GroupChatModal = ({ children }) => {
         status: "success",
         duration: 5000,
         isClosable: true,
-        position: "bottom",
+        position: "top",
       });
     } catch (error) {
       toast({
@@ -120,7 +120,7 @@ const GroupChatModal = ({ children }) => {
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "bottom",
+        position: "top",
       });
     }
   };
