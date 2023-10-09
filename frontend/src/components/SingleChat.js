@@ -11,6 +11,8 @@ import ProfileModal from "./miscellaneous/ProfileModal";
 import ScrollableChat from "./ScrollableChat";
 import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
+import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 import io from "socket.io-client";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
@@ -245,6 +247,18 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 placeholder="Enter a message.."
                 value={newMessage}
                 onChange={typingHandler}
+                endAdornment={
+                  <>
+                    <InsertEmoticonIcon
+                      style={{ cursor: "pointer" }}
+                      onClick={handleEmojiClick}
+                    />
+                    <AttachFileIcon
+                      style={{ cursor: "pointer" }}
+                      onClick={handleFileSharingClick}
+                    />
+                  </>
+                }
               />
             </FormControl>
           </Box>
