@@ -11,8 +11,10 @@ import ProfileModal from "./miscellaneous/ProfileModal";
 import ScrollableChat from "./ScrollableChat";
 import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
+
 import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { Picker } from "emoji-mart";
 
 import io from "socket.io-client";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
@@ -26,6 +28,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
+  const [emojiPanelOpen, setEmojiPanelOpen] = useState(false);
+
   const [istyping, setIsTyping] = useState(false);
   const toast = useToast();
 
@@ -103,6 +107,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           position: "top",
         });
       }
+      console.log("Sending message:", newMessage);
+
+      // Clear the input field
+      setNewMessage("");
     }
   };
 
@@ -113,13 +121,22 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket.on("typing", () => setIsTyping(true));
     socket.on("stop typing", () => setIsTyping(false));
 
+     return () => {
+       // Cleanup code if needed
+       socket.disconnect();
+     };
     // eslint-disable-next-line
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchMessages();
 
     selectedChatCompare = selectedChat;
+
+     return () => {
+       // Cleanup code if needed
+       socket.disconnect();
+     };
     // eslint-disable-next-line
   }, [selectedChat]);
 
@@ -159,6 +176,13 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     }, timerLength);
   };
+
+  const toggleEmojiPanel = () => {
+    console.log("Toggling emoji panel"); // Add this line for debugging
+    setEmojiPanelOpen(!emojiPanelOpen);
+  };
+
+  const handleFileSharingClick = (e) => {};
 
   return (
     <>
@@ -247,18 +271,51 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 placeholder="Enter a message.."
                 value={newMessage}
                 onChange={typingHandler}
-                endAdornment={
-                  <>
-                    <InsertEmoticonIcon
-                      style={{ cursor: "pointer" }}
-                      onClick={handleEmojiClick}
-                    />
-                    <AttachFileIcon
-                      style={{ cursor: "pointer" }}
-                      onClick={handleFileSharingClick}
-                    />
-                  </>
-                }
+                style={{
+                  border: "2px solid blue",
+                  borderRadius: "5px",
+                  width: "92%",
+                  marginRight: "px",
+                  float: "right",
+                  clear: "both",
+                }}
+              />
+              <InsertEmoticonIcon
+                style={{
+                  cursor: "pointer",
+                  marginRight: "10px",
+                  fontSize: "35px",
+                }}
+                onClick={toggleEmojiPanel}
+              />
+              {emojiPanelOpen && (
+                <Picker
+                  onSelect={(emoji) => {
+                    setNewMessage((prevMessage) => prevMessage + emoji.native);
+                    toggleEmojiPanel(); // Close the emoji panel after selection
+                  }}
+                  emojiSize={24}
+                  title="Pick an emoji"
+                  style={{
+                    position: "absolute",
+                    bottom: "60px",
+                    right: "10px",
+                  }}
+                />
+              )}
+              <label htmlFor="fileInput">
+                <AttachFileIcon
+                  style={{
+                    cursor: "pointer",
+                    fontSize: "35px",
+                  }}
+                />
+              </label>
+              <input
+                type="file"
+                id="fileInput"
+                style={{ display: "none" }}
+                onChange={(e) => handleFileSharingClick(e)}
               />
             </FormControl>
           </Box>
