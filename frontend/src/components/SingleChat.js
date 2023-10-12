@@ -121,10 +121,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket.on("typing", () => setIsTyping(true));
     socket.on("stop typing", () => setIsTyping(false));
 
-     return () => {
-       // Cleanup code if needed
-       socket.disconnect();
-     };
+    return () => {
+      // Cleanup code if needed
+      socket.disconnect();
+    };
     // eslint-disable-next-line
   }, [user]);
 
@@ -133,10 +133,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     selectedChatCompare = selectedChat;
 
-     return () => {
-       // Cleanup code if needed
-       socket.disconnect();
-     };
+    return () => {
+      // Cleanup code if needed
+      socket.disconnect();
+    };
     // eslint-disable-next-line
   }, [selectedChat]);
 
@@ -292,7 +292,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <Picker
                   onSelect={(emoji) => {
                     setNewMessage((prevMessage) => prevMessage + emoji.native);
-                    toggleEmojiPanel(); // Close the emoji panel after selection
+                    setEmojiPanelOpen(false); // Close the emoji panel after selection
                   }}
                   emojiSize={24}
                   title="Pick an emoji"
