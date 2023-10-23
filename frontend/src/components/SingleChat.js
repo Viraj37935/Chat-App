@@ -22,7 +22,7 @@ import { ChatState } from "../Context/ChatProvider";
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 
-const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+const SingleChat = ({ fetchAgain, setFetchAgain, file }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
@@ -32,6 +32,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const [istyping, setIsTyping] = useState(false);
   const toast = useToast();
+ const objectURL = URL.createObjectURL(blob);
+ console.log(objectURL);
 
   const defaultOptions = {
     loop: true,
@@ -182,7 +184,35 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     setEmojiPanelOpen(!emojiPanelOpen);
   };
 
-  const handleFileSharingClick = (e) => {};
+  const handleFileSharingClick = async (event) => {
+    const fileInput = document.querySelector("#fileInput");
+    const file = fileInput.files[0];
+
+    // Create a new FormData object and append the file object to it.
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Send a POST request to the file upload endpoint.
+    const response = await fetch("/api/chat/file/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    // Check the response status code to see if the file was uploaded successfully.
+    if (response.status === 200) {
+      // The file was uploaded successfully.
+      // Get the URL of the uploaded file from the response.
+      const fileUrl = await response.json();
+      fileUrl = fileUrl.fileUrl;
+
+      // Display the URL of the uploaded file in the chat conversation.
+      const chatMessage = document.querySelector("#chat-message");
+      chatMessage.innerHTML += `<a href="${fileUrl}">${file.name}</a>`;
+    } else {
+      // There was an error uploading the file.
+      // Display an error message to the user.
+    }
+  };
 
   return (
     <>

@@ -42,6 +42,7 @@ const sendMessage = asyncHandler(async (req, res) => {
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
 //@access          Protected
+
 const allMessages = asyncHandler(async (req, res) => {
   try {
     const messages = await Message.find({ chat: req.params.chatId })
@@ -54,4 +55,34 @@ const allMessages = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { allMessages, sendMessage };
+
+const handleFileSharingClick = async (e) => {
+  const file = fileInput.files[0];
+
+  // Create a FormData object to store the file.
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // Send a POST request to the file upload endpoint.
+  const response = await fetch("/api/chat/file/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  // Check the response status code to see if the file was uploaded successfully.
+  if (response.status === 200) {
+    // The file was uploaded successfully.
+    // Get the URL of the uploaded file from the response.
+    const fileUrl = await response.json();
+    fileUrl = fileUrl.fileUrl;
+
+    // Display the URL of the uploaded file in the chat conversation.
+    const chatMessage = document.querySelector("#chat-message");
+    chatMessage.innerHTML += `<a href="${fileUrl}">${file.name}</a>`;
+  } else {
+    // There was an error uploading the file.
+    // Display an error message to the user.
+  }
+};
+
+module.exports = { allMessages, sendMessage, handleFileSharingClick };
