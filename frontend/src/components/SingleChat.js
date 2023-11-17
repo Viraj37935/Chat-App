@@ -4,7 +4,8 @@ import { Box, Text } from "@chakra-ui/layout";
 import "./styles.css";
 import { IconButton, Spinner, useToast } from "@chakra-ui/react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import ProfileModal from "./miscellaneous/ProfileModal";
@@ -12,9 +13,9 @@ import ScrollableChat from "./ScrollableChat";
 import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
 
+import Picker from "emoji-picker-react";
 import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import { Picker } from "emoji-mart";
 
 import io from "socket.io-client";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
@@ -22,18 +23,16 @@ import { ChatState } from "../Context/ChatProvider";
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 
-const SingleChat = ({ fetchAgain, setFetchAgain, file }) => {
+const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
-  const [emojiPanelOpen, setEmojiPanelOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const [istyping, setIsTyping] = useState(false);
   const toast = useToast();
- const objectURL = URL.createObjectURL(blob);
- console.log(objectURL);
 
   const defaultOptions = {
     loop: true,
@@ -79,7 +78,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain, file }) => {
   };
 
   const sendMessage = async (event) => {
-    if (event.key === "Enter" && newMessage) {
+    if (event.key === "Enter" && (newMessage || showEmojiPicker)) {
       socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
@@ -88,11 +87,18 @@ const SingleChat = ({ fetchAgain, setFetchAgain, file }) => {
             Authorization: `Bearer ${user.token}`,
           },
         };
+
+        let messageContent = newMessage;
+        if (showEmojiPicker) {
+          messageContent += newMessage; // Append selected emojis to the message
+          setShowEmojiPicker(false); // Hide the emoji picker
+        }
+
         setNewMessage("");
         const { data } = await axios.post(
           "/api/message",
           {
-            content: newMessage,
+            content: messageContent,
             chatId: selectedChat,
           },
           config
@@ -179,39 +185,20 @@ const SingleChat = ({ fetchAgain, setFetchAgain, file }) => {
     }, timerLength);
   };
 
-  const toggleEmojiPanel = () => {
-    console.log("Toggling emoji panel"); // Add this line for debugging
-    setEmojiPanelOpen(!emojiPanelOpen);
+  const handleEmojiPickerHideShow = () => {
+    setShowEmojiPicker(!showEmojiPicker);
   };
 
-  const handleFileSharingClick = async (event) => {
-    const fileInput = document.querySelector("#fileInput");
-    const file = fileInput.files[0];
+  const handleEmojiClick = (emojiObject, event) => {
+    // Extract the emoji from the emojiObject
+    const emoji = emojiObject?.emoji || "";
 
-    // Create a new FormData object and append the file object to it.
-    const formData = new FormData();
-    formData.append("file", file);
+    // Concatenate the emoji with the message
+    setNewMessage((prevMessage) => prevMessage + (emoji || ""));
+  };
 
-    // Send a POST request to the file upload endpoint.
-    const response = await fetch("/api/chat/file/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    // Check the response status code to see if the file was uploaded successfully.
-    if (response.status === 200) {
-      // The file was uploaded successfully.
-      // Get the URL of the uploaded file from the response.
-      const fileUrl = await response.json();
-      fileUrl = fileUrl.fileUrl;
-
-      // Display the URL of the uploaded file in the chat conversation.
-      const chatMessage = document.querySelector("#chat-message");
-      chatMessage.innerHTML += `<a href="${fileUrl}">${file.name}</a>`;
-    } else {
-      // There was an error uploading the file.
-      // Display an error message to the user.
-    }
+  const sendFile = (e) => {
+    sendMessage(e);
   };
 
   return (
@@ -316,23 +303,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain, file }) => {
                   marginRight: "10px",
                   fontSize: "35px",
                 }}
-                onClick={toggleEmojiPanel}
+                onClick={handleEmojiPickerHideShow}
               />
-              {emojiPanelOpen && (
-                <Picker
-                  onSelect={(emoji) => {
-                    setNewMessage((prevMessage) => prevMessage + emoji.native);
-                    setEmojiPanelOpen(false); // Close the emoji panel after selection
-                  }}
-                  emojiSize={24}
-                  title="Pick an emoji"
-                  style={{
-                    position: "absolute",
-                    bottom: "60px",
-                    right: "10px",
-                  }}
-                />
-              )}
+              {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick} />}
+
               <label htmlFor="fileInput">
                 <AttachFileIcon
                   style={{
@@ -345,7 +319,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain, file }) => {
                 type="file"
                 id="fileInput"
                 style={{ display: "none" }}
-                onChange={(e) => handleFileSharingClick(e)}
+                onChange={sendFile}
               />
             </FormControl>
           </Box>

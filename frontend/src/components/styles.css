@@ -4,3 +4,17 @@
   overflow-y: scroll;
   scrollbar-width: none;
 }
+
+.emoji-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  display: none;
+  top: -350px;
+  /* Additional styles as needed */
+}
+
+input:focus+.emoji-picker {
+  display: block;
+}
+

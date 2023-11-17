@@ -1,3 +1,4 @@
+
 const express = require("express");
 const connectDB = require("./config/db");
 const dotenv = require("dotenv");
@@ -6,6 +7,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const path = require("path");
+const multer = require("multer");
 
 dotenv.config();
 connectDB();
@@ -88,4 +90,30 @@ io.on("connection", (socket) => {
     console.log("USER DISCONNECTED");
     socket.leave(userData._id);
   });
+});
+
+// --------------------------File Upload------------------------------
+
+const storage = multer.diskStorage({
+  destination:(req, file, cb) => {
+    cb(null, "./uploads"); // Set the destination folder for file uploads
+  },
+
+  filename: (req, file, cb) => {
+    cb(null, file.originalname); // Set the file name
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// Set up a route for handling file uploads
+app.post('/api/chat/file/upload', upload.single('file'), (req, res) => {
+  // The 'file' in upload.single('file') should match the name attribute in your file input
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded.' });
+  }
+
+  // File uploaded successfully
+  res.status(200).json({ message: 'File uploaded successfully' });
 });
