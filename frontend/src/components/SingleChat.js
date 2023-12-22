@@ -15,7 +15,8 @@ import animationData from "../animations/typing.json";
 
 import Picker from "emoji-picker-react";
 import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
+//import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { useRef } from "react";
 
 import io from "socket.io-client";
 import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
@@ -30,6 +31,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const fileRef = useRef();
+  const PickerRef = useRef();
 
   const [istyping, setIsTyping] = useState(false);
   const toast = useToast();
@@ -88,9 +91,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
         };
 
-        let messageContent = newMessage;
-        if (showEmojiPicker) {
-          messageContent += newMessage; // Append selected emojis to the message
+        // Extract the emoji from the newMessage state
+        const emoji = newMessage.replace(/[^a-zA-Z0-9]/g, ""); // Keep only alphanumeric characters
+
+        let messageContent = newMessage ?? "";
+        if (showEmojiPicker && emoji) {
+          messageContent += emoji; // Append selected emoji to the message
           setShowEmojiPicker(false); // Hide the emoji picker
         }
 
@@ -107,7 +113,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         setMessages([...messages, data]);
       } catch (error) {
         toast({
-          title: "Error Occured!",
+          title: "Error Occurred!",
           description: "Failed to send the Message",
           status: "error",
           duration: 5000,
@@ -140,11 +146,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     fetchMessages();
 
     selectedChatCompare = selectedChat;
-
-    return () => {
-      // Cleanup code if needed
-      socket.disconnect();
-    };
     // eslint-disable-next-line
   }, [selectedChat]);
 
@@ -185,6 +186,20 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }, timerLength);
   };
 
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (e.target.id !== "emoji-open") {
+        if (PickerRef.current && !PickerRef.current.contains(e.target)) {
+          setShowEmojiPicker(false);
+        }
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, []);
+
   const handleEmojiPickerHideShow = () => {
     setShowEmojiPicker(!showEmojiPicker);
   };
@@ -193,13 +208,43 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     // Extract the emoji from the emojiObject
     const emoji = emojiObject?.emoji || "";
 
-    // Concatenate the emoji with the message
+    // Now you can use the emoji variable
     setNewMessage((prevMessage) => prevMessage + (emoji || ""));
   };
 
-  const sendFile = (e) => {
-    sendMessage(e);
+  const selectFile = async (e) => {
+    try {
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await axios.post("/api/add-image-message", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        params: {
+          chatId: selectedChat,
+        },
+      });
+      const data = response.data;
+      if (response.status === 201) {
+        socket.emit("new message", data);
+        setMessages([...messages, data]);
+      }
+      console.log(data);
+    } catch (error) {
+      toast({
+        title: "Error Occurred!",
+        description: "Failed to send the Message",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+    }
   };
+
+  const sendFile = async (e) => {};
 
   return (
     <>
@@ -286,7 +331,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 variant="filled"
                 bg="#E0E0E0"
                 placeholder="Enter a message.."
-                value={newMessage}
+                value={newMessage ?? ""}
                 onChange={typingHandler}
                 style={{
                   border: "2px solid blue",
@@ -298,6 +343,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }}
               />
               <InsertEmoticonIcon
+                title="Emoji"
+                id="emoji-open"
                 style={{
                   cursor: "pointer",
                   marginRight: "10px",
@@ -305,21 +352,30 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 }}
                 onClick={handleEmojiPickerHideShow}
               />
-              {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick} />}
+              {showEmojiPicker && (
+                <div
+                  className="absolute bottom-24 left-16 z-40"
+                  ref={PickerRef}
+                >
+                  <Picker onEmojiClick={handleEmojiClick} theme="dark" />{" "}
+                </div>
+              )}
 
-              <label htmlFor="fileInput">
+              {/*<label htmlFor="fileInput">
                 <AttachFileIcon
                   style={{
                     cursor: "pointer",
                     fontSize: "35px",
                   }}
                 />
-              </label>
+              </label>*/}
               <input
                 type="file"
+                ref={fileRef}
                 id="fileInput"
                 style={{ display: "none" }}
                 onChange={sendFile}
+                onClick={selectFile}
               />
             </FormControl>
           </Box>

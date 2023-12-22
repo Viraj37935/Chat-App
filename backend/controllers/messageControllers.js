@@ -1,3 +1,5 @@
+// import { renameSync } from "fs";
+
 const asyncHandler = require("express-async-handler");
 const Message = require("../models/messageModel");
 const User = require("../models/userModel");
@@ -55,4 +57,32 @@ const allMessages = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { allMessages, sendMessage, handleFileSharingClick };
+const addImageMessage = async (req, res) => {
+  try {
+    if (req.file) {
+      let fileName = "uploads/images/" + req.file.originalname;
+      console.log(fileName, req.file.path);
+      renameSync(req.file.path, fileName);
+      const { sender, chat } = req.query;
+
+      if (sender && chat) {
+        const message = await Message.create({
+          data: {
+            message: fileName,
+            sender: req.user._id,
+            chat: chatId,
+            type: "image",
+          },
+        });
+        return res.status(201).json({ message });
+      }
+      return res.status(400).send("sender,chat is required.");
+    }
+    return res.status(400).send("Image is required.");
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+};
+
+module.exports = { allMessages, sendMessage, addImageMessage };

@@ -1,4 +1,4 @@
-
+const path = require("path");
 const express = require("express");
 const connectDB = require("./config/db");
 const dotenv = require("dotenv");
@@ -6,8 +6,6 @@ const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-const path = require("path");
-const multer = require("multer");
 
 dotenv.config();
 connectDB();
@@ -19,10 +17,12 @@ app.use(express.json()); // to accept json data
 //   res.send("API Running!");
 // });
 
+app.use("/uploads/images", express.static("uploads/images"));
+
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
-
+//app.use("/api/add-image-message", messageRoutes);
 // --------------------------deployment------------------------------
 
 const __dirname1 = path.resolve();
@@ -62,6 +62,7 @@ const io = require("socket.io")(server, {
 
 io.on("connection", (socket) => {
   console.log("Connected to socket.io");
+
   socket.on("setup", (userData) => {
     socket.join(userData._id);
     socket.emit("connected");
@@ -71,6 +72,7 @@ io.on("connection", (socket) => {
     socket.join(room);
     console.log("User Joined Room: " + room);
   });
+
   socket.on("typing", (room) => socket.in(room).emit("typing"));
   socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
@@ -93,27 +95,3 @@ io.on("connection", (socket) => {
 });
 
 // --------------------------File Upload------------------------------
-
-const storage = multer.diskStorage({
-  destination:(req, file, cb) => {
-    cb(null, "./uploads"); // Set the destination folder for file uploads
-  },
-
-  filename: (req, file, cb) => {
-    cb(null, file.originalname); // Set the file name
-  },
-});
-
-const upload = multer({ storage: storage });
-
-// Set up a route for handling file uploads
-app.post('/api/chat/file/upload', upload.single('file'), (req, res) => {
-  // The 'file' in upload.single('file') should match the name attribute in your file input
-
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded.' });
-  }
-
-  // File uploaded successfully
-  res.status(200).json({ message: 'File uploaded successfully' });
-});

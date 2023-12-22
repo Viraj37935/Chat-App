@@ -7,7 +7,7 @@ import { getSender } from "../config/ChatLogics";
 import ChatLoading from "./ChatLoading";
 import GroupChatModal from "./miscellaneous/GroupChatModal";
 import { Button } from "@chakra-ui/react";
-import { ChatState } from "../Context/ChatProvider";
+import { ChatState } from "../Context/ChatProvider"; 
 
 const MyChats = ({ fetchAgain }) => {
   const [loggedUser, setLoggedUser] = useState();
@@ -73,7 +73,7 @@ const MyChats = ({ fetchAgain }) => {
             fontSize={{ base: "17px", md: "10px", lg: "17px" }}
             rightIcon={<AddIcon />}
           >
-            New Group Chat
+            New Group Chat  
           </Button>
         </GroupChatModal>
       </Box>
