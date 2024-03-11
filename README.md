@@ -11,10 +11,6 @@ Uses Socket.io for real time communication and stores user details in encrypted 
 
 **Database:** Mongo DB
 
-## Demo
-
-https://talk-a-tive.herokuapp.com/
-
 ## Run Locally
 
 Clone the project
@@ -64,6 +60,8 @@ Start the Client
 ### Authenticaton
 
 ### Real Time Chatting with Typing indicators
+
+### Send Message With Emoji
 
 ### One to One chat
 
