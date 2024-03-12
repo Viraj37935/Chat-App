@@ -13,10 +13,11 @@ import {
   useToast,
   Box,
 } from "@chakra-ui/react";
+import React from "react";
 import axios from "axios";
 import { useState } from "react";
 import { ChatState } from "../../Context/ChatProvider";
-import UserBadgeItem from "../userAvatar/UserBadgeItem";
+import UserBadgeItem from "../userAvatar/UserBadgeItem"; 
 import UserListItem from "../userAvatar/UserListItem";
 
 const GroupChatModal = ({ children }) => {
